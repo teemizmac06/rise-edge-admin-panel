@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RiseEdge Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%23d4a843'/><text y='.9em' font-size='75' x='12'>⚙️</text></svg>">
+<style>
+:root{--bg:#07090f;--bg2:#0d1117;--bg3:#111827;--gold:#d4a843;--gold2:#f0c96a;--white:#f0ede6;--muted:rgba(240,237,230,0.5);--teal:#2dd4bf;--red:#ef4444;--green:#22c55e;--border:rgba(255,255,255,0.07);--border-gold:rgba(212,168,67,0.25);}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--white);font-family:'Outfit',sans-serif;min-height:100vh;}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:rgba(212,168,67,.4);border-radius:3px;}
+
+/* LOGIN */
+#loginScreen{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(212,168,67,.06),var(--bg));z-index:1000;display:flex;align-items:center;justify-content:center;}
+.lbox{background:rgba(255,255,255,.04);border:1px solid var(--border-gold);border-radius:24px;padding:52px 48px;max-width:420px;width:100%;text-align:center;}
+.lbox-icon{font-size:3.5rem;margin-bottom:20px;}
+.lbox h1{font-family:'DM Serif Display',serif;font-size:2rem;color:var(--gold2);margin-bottom:8px;}
+.lbox p{font-size:.82rem;color:var(--muted);margin-bottom:36px;}
+.lf{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:var(--white);padding:14px 18px;border-radius:10px;font-family:'Outfit',sans-serif;font-size:.9rem;outline:none;margin-bottom:12px;transition:border-color .3s;}
+.lf:focus{border-color:var(--gold);}
+.lf::placeholder{color:rgba(240,237,230,.28);}
+.lbtn{width:100%;background:linear-gradient(135deg,var(--gold),#b8941f);color:#0a0800;padding:15px;border-radius:10px;font-weight:700;font-size:.92rem;border:none;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .3s;}
+.lbtn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(212,168,67,.4);}
+.lerr{color:var(--red);font-size:.78rem;margin-top:12px;display:none;}
+
+/* APP */
+#app{display:none;min-height:100vh;}
+
+/* TOPBAR */
+.topbar{background:rgba(8,10,18,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border-gold);height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;position:sticky;top:0;z-index:200;}
+.tb-brand{display:flex;align-items:center;gap:12px;}
+.tb-logo{width:36px;height:36px;border-radius:10px;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:0 0 16px rgba(212,168,67,.4);}
+.tb-name{font-family:'DM Serif Display',serif;font-size:1.15rem;color:var(--gold2);}
+.tb-sub{font-size:.62rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;}
+.tb-right{display:flex;align-items:center;gap:10px;}
+.tbtn{background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--white);padding:7px 14px;border-radius:8px;font-size:.75rem;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .3s;text-decoration:none;display:inline-flex;align-items:center;gap:6px;}
+.tbtn:hover{background:rgba(212,168,67,.1);border-color:var(--border-gold);color:var(--gold2);}
+.tbtn.red{color:var(--red);border-color:rgba(239,68,68,.25);}
+.tbtn.red:hover{background:rgba(239,68,68,.1);}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 62px);}
+.sidebar{background:rgba(7,9,15,.7);border-right:1px solid var(--border);padding:20px 10px;position:sticky;top:62px;height:calc(100vh - 62px);overflow-y:auto;}
+.sidebar-sec{font-size:.58rem;letter-spacing:3px;text-transform:uppercase;color:rgba(240,237,230,.25);padding:0 12px;margin:18px 0 6px;}
+.sidebar-sec:first-child{margin-top:0;}
+.sl{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;cursor:pointer;color:var(--muted);font-size:.82rem;transition:all .3s;border:none;background:none;width:100%;text-align:left;font-family:'Outfit',sans-serif;position:relative;}
+.sl svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+.sl:hover{background:rgba(255,255,255,.05);color:var(--white);}
+.sl.act{background:rgba(212,168,67,.1);color:var(--gold2);border-left:2px solid var(--gold);}
+.sl .bdg{margin-left:auto;background:var(--gold);color:#0a0800;font-size:.56rem;font-weight:700;padding:2px 6px;border-radius:100px;}
+
+/* CONTENT */
+.content{padding:32px 40px;overflow-y:auto;}
+.pg{display:none;}
+.pg.act{display:block;}
+.pg-h1{font-family:'DM Serif Display',serif;font-size:1.9rem;margin-bottom:6px;}
+.pg-sub{font-size:.82rem;color:var(--muted);margin-bottom:28px;}
+
+/* COMPONENTS */
+.card{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:14px;padding:24px;}
+.card+.card{margin-top:16px;}
+.card-h{font-family:'DM Serif Display',serif;font-size:1rem;margin-bottom:4px;}
+.card-s{font-size:.74rem;color:var(--muted);margin-bottom:18px;}
+.divider{height:1px;background:var(--border);margin:24px 0;}
+
+/* OVERVIEW STATS */
+.ov-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;}
+.ov{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;padding:18px 16px;text-align:center;}
+.ov-n{font-family:'DM Serif Display',serif;font-size:2rem;color:var(--gold2);display:block;line-height:1;}
+.ov-l{font-size:.62rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:6px;}
+
+/* BUTTONS */
+.btn{padding:9px 18px;border-radius:8px;font-size:.76rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;border:none;transition:all .3s;display:inline-flex;align-items:center;gap:6px;text-decoration:none;}
+.btn-primary{background:linear-gradient(135deg,var(--gold),#b8941f);color:#0a0800;}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(212,168,67,.35);}
+.btn-ghost{background:rgba(212,168,67,.08);border:1px solid var(--border-gold);color:var(--gold2);}
+.btn-ghost:hover{background:rgba(212,168,67,.18);}
+.btn-teal{background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.3);color:var(--teal);}
+.btn-teal:hover{background:rgba(45,212,191,.2);}
+.btn-red{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:var(--red);}
+.btn-red:hover{background:rgba(239,68,68,.15);}
+.btn-save{width:100%;background:linear-gradient(135deg,var(--gold),#b8941f);color:#0a0800;padding:14px;border-radius:10px;font-weight:700;font-size:.9rem;border:none;cursor:pointer;font-family:'Outfit',sans-serif;margin-top:16px;transition:all .3s;}
+.btn-save:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(212,168,67,.4);}
+
+/* FORM ELEMENTS */
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.frow.full{grid-template-columns:1fr;}
+.frow.tri{grid-template-columns:1fr 1fr 1fr;}
+.fg{display:flex;flex-direction:column;gap:5px;}
+.fl{font-size:.7rem;font-weight:600;color:var(--gold2);letter-spacing:1px;text-transform:uppercase;}
+.fi{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:var(--white);padding:11px 14px;border-radius:9px;font-family:'Outfit',sans-serif;font-size:.83rem;outline:none;transition:border-color .3s;width:100%;}
+.fi:focus{border-color:var(--gold);}
+.fi::placeholder{color:rgba(240,237,230,.22);}
+textarea.fi{resize:vertical;min-height:80px;line-height:1.7;}
+select.fi{cursor:pointer;}
+.fh{font-size:.66rem;color:var(--muted);margin-top:3px;}
+
+/* PHOTO UPLOAD */
+.pu{border:2px dashed rgba(212,168,67,.3);border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:all .3s;background:rgba(212,168,67,.03);}
+.pu:hover{border-color:var(--gold);background:rgba(212,168,67,.07);}
+.pu.has{border-style:solid;border-color:var(--gold);}
+.pu img.prev{width:90px;height:90px;border-radius:10px;object-fit:cover;margin:0 auto 10px;display:block;border:2px solid var(--gold);}
+.pu-ph{font-size:.8rem;color:var(--muted);}
+
+/* COLOR SWATCHES */
+.csw{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+.cs{width:26px;height:26px;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:transform .2s,border-color .2s;flex-shrink:0;}
+.cs.act{border-color:var(--white);transform:scale(1.18);}
+
+/* TOGGLE */
+.tog-row{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:9px;margin-bottom:14px;}
+.tog-info .tog-l{font-size:.82rem;font-weight:600;}
+.tog-info .tog-s{font-size:.7rem;color:var(--muted);}
+.tog{width:42px;height:22px;background:rgba(255,255,255,.1);border-radius:100px;position:relative;cursor:pointer;transition:background .3s;flex-shrink:0;}
+.tog.on{background:var(--gold);}
+.tog::after{content:'';position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:3px;left:3px;transition:left .3s;box-shadow:0 2px 4px rgba(0,0,0,.3);}
+.tog.on::after{left:23px;}
+
+/* ITEM LIST */
+.ilist{display:grid;gap:12px;margin-bottom:16px;}
+.iitem{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:16px 18px;display:flex;align-items:center;gap:16px;transition:border-color .3s;}
+.iitem:hover{border-color:var(--border-gold);}
+.iitem.featured{border-color:rgba(212,168,67,.4);background:rgba(212,168,67,.04);}
+.iitem-thumb{width:56px;height:56px;border-radius:10px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.4rem;}
+.iitem-thumb img{width:100%;height:100%;object-fit:cover;}
+.iitem-info{flex:1;min-width:0;}
+.iitem-title{font-family:'DM Serif Display',serif;font-size:1rem;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.iitem-sub{font-size:.72rem;color:var(--muted);}
+.iitem-tag{font-size:.68rem;color:var(--teal);}
+.iitem-acts{display:flex;gap:7px;flex-shrink:0;}
+.feat-pill{display:inline-block;background:var(--gold);color:#0a0800;font-size:.56rem;font-weight:700;padding:2px 8px;border-radius:100px;margin-bottom:4px;}
+
+/* MODAL / FORM OVERLAY */
+.foverlay{position:fixed;inset:0;background:rgba(7,9,15,.9);backdrop-filter:blur(16px);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .3s;}
+.foverlay.open{opacity:1;pointer-events:all;}
+.fmodal{background:linear-gradient(145deg,#0f1520,#0d1117);border:1px solid var(--border-gold);border-radius:20px;max-width:680px;width:100%;max-height:92vh;overflow-y:auto;padding:32px;position:relative;scrollbar-width:thin;}
+.fm-close{position:absolute;top:18px;right:18px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--white);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.fm-close:hover{background:rgba(212,168,67,.15);}
+.fm-title{font-family:'DM Serif Display',serif;font-size:1.5rem;margin-bottom:4px;}
+.fm-sub{font-size:.76rem;color:var(--muted);margin-bottom:24px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;right:28px;z-index:9999;background:rgba(8,11,20,.96);backdrop-filter:blur(12px);border-radius:12px;padding:13px 20px;font-size:.8rem;font-weight:600;transform:translateY(80px);opacity:0;transition:all .4s;pointer-events:none;max-width:320px;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.ok{border:1px solid rgba(34,197,94,.4);color:var(--green);}
+.toast.err{border:1px solid rgba(239,68,68,.4);color:var(--red);}
+
+/* NOTICE */
+.notice{border-radius:10px;padding:14px 18px;font-size:.8rem;line-height:1.7;margin-bottom:20px;}
+.notice.info{background:rgba(45,212,191,.05);border:1px solid rgba(45,212,191,.2);color:rgba(45,212,191,.9);}
+.notice.warn{background:rgba(212,168,67,.05);border:1px solid rgba(212,168,67,.2);color:var(--gold2);}
+.notice.danger{background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.2);color:var(--red);}
+
+/* INLINE EMAIL TEMPLATE */
+.tpl{background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:10px;padding:16px;font-size:.78rem;line-height:2;color:rgba(240,237,230,.75);white-space:pre-wrap;font-family:monospace;margin-top:12px;}
+
+/* RESPONSIVE */
+@media(max-width:768px){.layout{grid-template-columns:1fr;}.sidebar{display:none;}.frow,.frow.tri{grid-template-columns:1fr;}.ov-grid{grid-template-columns:repeat(2,1fr);}.content{padding:20px;}.iitem{flex-direction:column;align-items:flex-start;}.iitem-acts{width:100%;}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="lbox">
+    <div class="lbox-icon">🔐</div>
+    <h1>RiseEdge Admin</h1>
+    <p>Staff access only — website control panel</p>
+    <input type="text" class="lf" id="lu" placeholder="Username" autocomplete="off">
+    <input type="password" class="lf" id="lp" placeholder="Password">
+    <button class="lbtn" onclick="doLogin()">Sign In →</button>
+    <div class="lerr" id="lerr">❌ Incorrect credentials. Try again.</div>
+    <p style="margin-top:24px;font-size:.68rem;color:rgba(240,237,230,.18);">Default: <strong>riseedge</strong> / <strong>admin2024</strong></p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="tb-brand">
+      <div class="tb-logo">📚</div>
+      <div><div class="tb-name">RiseEdge</div><div class="tb-sub">Admin Panel</div></div>
+    </div>
+    <div class="tb-right">
+      <a href="riseedge-bookclub.html" target="_blank" class="tbtn">👁 View Website</a>
+      <button class="tbtn red" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-sec">Overview</div>
+      <button class="sl act" onclick="sp('dash',this)"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard</button>
+
+      <div class="sidebar-sec">Manage Sections</div>
+      <button class="sl" onclick="sp('books',this)"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>Books<span class="bdg" id="bdg-books">0</span></button>
+      <button class="sl" onclick="sp('spotlight',this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M12 14c-5 0-8 2-8 4v1h16v-1c0-2-3-4-8-4z"/></svg>Spotlight<span class="bdg" id="bdg-spot">0</span></button>
+      <button class="sl" onclick="sp('events',this)"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Events<span class="bdg" id="bdg-events">0</span></button>
+      <button class="sl" onclick="sp('blog',this)"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Blog Posts<span class="bdg" id="bdg-blog">0</span></button>
+      <button class="sl" onclick="sp('authors',this)"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Authors</button>
+      <button class="sl" onclick="sp('awards',this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>Awards</button>
+
+      <div class="sidebar-sec">Tools</div>
+      <button class="sl" onclick="sp('howto',this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>How To Use</button>
+      <button class="sl" onclick="sp('reset',this)"><svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>Reset Data</button>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- ═══ DASHBOARD ═══ -->
+      <div class="pg act" id="pg-dash">
+        <div class="pg-h1">Dashboard</div>
+        <div class="pg-sub">Welcome back! Control every section of your RiseEdge website from here.</div>
+        <div class="ov-grid">
+          <div class="ov"><span class="ov-n" id="ov-books">0</span><div class="ov-l">Books Listed</div></div>
+          <div class="ov"><span class="ov-n" id="ov-spot">0</span><div class="ov-l">Spotlight Authors</div></div>
+          <div class="ov"><span class="ov-n" id="ov-events">0</span><div class="ov-l">Events</div></div>
+          <div class="ov"><span class="ov-n" id="ov-blog">0</span><div class="ov-l">Blog Posts</div></div>
+        </div>
+        <div class="notice info">✅ <strong>How updates work:</strong> When you save anything here, it saves to your browser's localStorage. Open your main website (<a href="riseedge-bookclub.html" target="_blank" style="color:var(--teal);">riseedge-bookclub.html</a>) in the same browser and changes appear immediately. Both files must be served from the <strong>same domain</strong> on Vercel for full sync.</div>
+        <div class="card">
+          <div class="card-h">⚡ Quick Actions</div>
+          <div class="card-s">Jump to common tasks</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-ghost" onclick="openModal('book','')">📚 Add Book</button>
+            <button class="btn btn-ghost" onclick="openModal('spot','')">🌟 Add Spotlight Author</button>
+            <button class="btn btn-ghost" onclick="openModal('event','')">📅 Add Event</button>
+            <button class="btn btn-ghost" onclick="openModal('post','')">✍️ Add Blog Post</button>
+            <a href="riseedge-bookclub.html" target="_blank" class="btn btn-ghost">👁 Preview Site</a>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h">📧 Author Spotlight Invitation Template</div>
+          <div class="card-s">Copy and send to authors after they confirm interest</div>
+          <div class="tpl">Subject: 🌟 RiseEdge Book Club — Author Spotlight Invitation
+
+Hello [Author Name],
+
+We'd love to feature you in our RiseEdge Author Spotlight! 🎉
+
+What you get:
+• Featured profile on rise-edge-book-club.vercel.app
+• Live Zoom session with our 5,000+ member community
+• Amazon book link promoted to all our readers
+• Social media promotion before & after the event
+
+Reservation Fee: [Your Price]
+Available Dates: [Dates]
+
+To confirm: reply to this email or send payment to
+rise.edgebookclub01@gmail.com
+
+Your profile will go live within 24 hours of payment.
+
+Let's Rise Together,
+RiseEdge Book Club</div>
+          <button class="btn btn-ghost" style="margin-top:10px;" onclick="copyTpl()">📋 Copy Template</button>
+        </div>
+      </div>
+
+      <!-- ═══ BOOKS ═══ -->
+      <div class="pg" id="pg-books">
+        <div class="pg-h1">Books</div>
+        <div class="pg-sub">Manage your reading list. You can add up to 20 books with cover images, reviews, and details.</div>
+        <div class="notice warn">📌 Changes save instantly. Open the main website to see updates. Max 20 books supported.</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <span style="font-size:.82rem;color:var(--muted);" id="bookCount2">Loading...</span>
+          <button class="btn btn-primary" onclick="openModal('book','')">➕ Add New Book</button>
+        </div>
+        <div class="ilist" id="book-list"></div>
+      </div>
+
+      <!-- ═══ SPOTLIGHT ═══ -->
+      <div class="pg" id="pg-spotlight">
+        <div class="pg-h1">Spotlight Authors</div>
+        <div class="pg-sub">Manage paid spotlight authors. The ⭐ Featured author is the big card on the website.</div>
+        <div class="notice info">💡 One author should be marked as Featured — they appear as the main large card. Others show as upcoming cards.</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <span style="font-size:.82rem;color:var(--muted);" id="spotCount">Loading...</span>
+          <button class="btn btn-primary" onclick="openModal('spot','')">➕ Add New Author</button>
+        </div>
+        <div class="ilist" id="spot-list"></div>
+      </div>
+
+      <!-- ═══ EVENTS ═══ -->
+      <div class="pg" id="pg-events">
+        <div class="pg-h1">Events</div>
+        <div class="pg-sub">Manage upcoming events shown on the website.</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <span style="font-size:.82rem;color:var(--muted);" id="evCount">Loading...</span>
+          <button class="btn btn-primary" onclick="openModal('event','')">➕ Add Event</button>
+        </div>
+        <div class="ilist" id="event-list"></div>
+      </div>
+
+      <!-- ═══ BLOG ═══ -->
+      <div class="pg" id="pg-blog">
+        <div class="pg-h1">Blog Posts</div>
+        <div class="pg-sub">Manage the blog/articles section shown on the website.</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <span style="font-size:.82rem;color:var(--muted);" id="blogCount">Loading...</span>
+          <button class="btn btn-primary" onclick="openModal('post','')">➕ Add Post</button>
+        </div>
+        <div class="ilist" id="blog-list"></div>
+      </div>
+
+      <!-- ═══ AUTHORS ═══ -->
+      <div class="pg" id="pg-authors">
+        <div class="pg-h1">Featured Authors Section</div>
+        <div class="pg-sub">These are the known authors shown in the "Featured Authors" section (not the spotlight).</div>
+        <div class="notice warn">This section uses built-in author data. To add a custom author to the main section, use the form below.</div>
+        <div style="margin-bottom:16px;"><button class="btn btn-primary" onclick="openModal('author','')">➕ Add Author to Section</button></div>
+        <div class="ilist" id="author-list"></div>
+      </div>
+
+      <!-- ═══ AWARDS ═══ -->
+      <div class="pg" id="pg-awards">
+        <div class="pg-h1">Awards Section</div>
+        <div class="pg-sub">Manage the award-winning books shown on the website.</div>
+        <div style="margin-bottom:16px;"><button class="btn btn-primary" onclick="openModal('award','')">➕ Add Award</button></div>
+        <div class="ilist" id="award-list"></div>
+      </div>
+
+      <!-- ═══ HOW TO ═══ -->
+      <div class="pg" id="pg-howto">
+        <div class="pg-h1">How To Use</div>
+        <div class="pg-sub">Complete guide to managing your RiseEdge website.</div>
+        <div class="card">
+          <div class="card-h">📌 Adding a New Paid Spotlight Author</div>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px;">
+            <div style="display:flex;gap:12px;"><span style="background:var(--gold);color:#0a0800;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;flex-shrink:0;">1</span><span style="font-size:.83rem;color:var(--muted);padding-top:2px;">Author pays the reservation fee → you get payment confirmation</span></div>
+            <div style="display:flex;gap:12px;"><span style="background:var(--gold);color:#0a0800;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;flex-shrink:0;">2</span><span style="font-size:.83rem;color:var(--muted);padding-top:2px;">Go to <strong style="color:var(--white);">Spotlight</strong> → click <strong style="color:var(--white);">Add New Author</strong></span></div>
+            <div style="display:flex;gap:12px;"><span style="background:var(--gold);color:#0a0800;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;flex-shrink:0;">3</span><span style="font-size:.83rem;color:var(--muted);padding-top:2px;">Upload their real photo (or paste a URL), fill in name, bio, genre, event date, Amazon link</span></div>
+            <div style="display:flex;gap:12px;"><span style="background:var(--gold);color:#0a0800;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;flex-shrink:0;">4</span><span style="font-size:.83rem;color:var(--muted);padding-top:2px;">Toggle <strong style="color:var(--white);">Set as Featured</strong> if this is the next upcoming event</span></div>
+            <div style="display:flex;gap:12px;"><span style="background:var(--gold);color:#0a0800;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;flex-shrink:0;">5</span><span style="font-size:.83rem;color:var(--muted);padding-top:2px;">Click <strong style="color:var(--white);">Save</strong> — profile goes live on website instantly</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h">⚠️ Why changes must be on the same domain</div>
+          <div class="notice danger" style="margin-top:12px;">Both <code>riseedge-bookclub.html</code> and <code>riseedge-admin.html</code> MUST be deployed together to the same Vercel project. This is because localStorage is domain-specific — so <code>vercel.app/admin</code> and <code>vercel.app</code> share the same storage, but <code>localhost</code> and <code>vercel.app</code> do not. If you edit on localhost and view on Vercel, changes won't appear.</div>
+        </div>
+        <div class="card">
+          <div class="card-h">🔑 Changing your password</div>
+          <p style="font-size:.82rem;color:var(--muted);margin-top:8px;line-height:1.7;">Open <code>riseedge-admin.html</code> in a code editor. Search for <code>riseedge</code> and <code>admin2024</code> and replace with your preferred username and password. Then re-deploy to Vercel.</p>
+        </div>
+        <div class="card">
+          <div class="card-h">📸 Best practices for photos</div>
+          <p style="font-size:.82rem;color:var(--muted);margin-top:8px;line-height:1.7;">For author photos, use direct URLs from: <strong style="color:var(--white);">Imgur</strong> (free, paste image URL), <strong style="color:var(--white);">Cloudinary</strong> (free tier), or <strong style="color:var(--white);">Google Drive</strong> (set file to public, use direct link). Uploaded files are converted to base64 and may be large — URLs are preferred for performance.</p>
+        </div>
+      </div>
+
+      <!-- ═══ RESET ═══ -->
+      <div class="pg" id="pg-reset">
+        <div class="pg-h1">Reset Data</div>
+        <div class="pg-sub">Restore any section back to its default content.</div>
+        <div class="notice danger">⚠️ Resetting a section is permanent. All your custom changes to that section will be lost.</div>
+        <div class="card">
+          <div class="card-h">Reset Individual Sections</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;">
+            <button class="btn btn-red" onclick="resetSection('re_books','books')">🗑 Reset Books to Default</button>
+            <button class="btn btn-red" onclick="resetSection('re_spotlight','spotlight')">🗑 Reset Spotlight to Default</button>
+            <button class="btn btn-red" onclick="resetSection('re_events','events')">🗑 Reset Events to Default</button>
+            <button class="btn btn-red" onclick="resetSection('re_blog','blog')">🗑 Reset Blog to Default</button>
+            <button class="btn btn-red" onclick="resetSection('re_authors','authors')">🗑 Reset Authors to Default</button>
+            <button class="btn btn-red" onclick="resetSection('re_awards','awards')">🗑 Reset Awards to Default</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h" style="color:var(--red);">Nuclear Option</div>
+          <div class="card-s">Reset ALL sections to their defaults</div>
+          <button class="btn btn-red" onclick="resetAll()">💥 Reset Everything to Default</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- FORM MODAL -->
+<div class="foverlay" id="foverlay" onclick="closeModal(event)">
+  <div class="fmodal" id="fmodal">
+    <button class="fm-close" onclick="closeModal()">✕</button>
+    <div class="fm-title" id="fm-title">Form</div>
+    <div class="fm-sub" id="fm-sub">Fill in the details below</div>
+    <div id="fm-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════
+   STORAGE KEYS — must match main site
+══════════════════════════════════ */
+const K={books:'re_books',spot:'re_spotlight',events:'re_events',blog:'re_blog',authors:'re_authors',awards:'re_awards'};
+
+function load(k,def){try{const d=localStorage.getItem(k);return d?JSON.parse(d):def;}catch(e){return def;}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(e){showToast('Storage full! Try removing some data.','err');return false;}}
+
+/* ── DEFAULT DATA ── */
+const DEF={
+  books:[
+    {id:0,title:"Things Fall Apart",author:"Chinua Achebe",genre:"African Classic",badge:"Current Read",bc:"",cover:"https://covers.openlibrary.org/b/isbn/9780385474542-L.jpg",fb:"📖",bg:"linear-gradient(135deg,#1a2a1a,#0d1a0d)",stars:"★★★★★",rating:"4.8/5",reads:"2.4K",rvc:48,desc:"A landmark novel about the clash between traditional Igbo society and colonialism. One of the greatest works of African literature.",reviews:[{n:"Amara O.",av:"AO",c:"#d4a843",s:"★★★★★",d:"Jan 28, 2026",t:"A profound, heartbreaking masterpiece. Essential reading for every human being."},{n:"Kwame B.",av:"KB",c:"#2dd4bf",s:"★★★★★",d:"Jan 15, 2026",t:"Made me see colonialism through completely new eyes."}],link:"https://www.goodreads.com/book/show/7143.Things_Fall_Apart"},
+    {id:1,title:"Purple Hibiscus",author:"Chimamanda N. Adichie",genre:"Coming of Age",badge:"March 2026",bc:"up",cover:"https://covers.openlibrary.org/b/isbn/9781616953638-L.jpg",fb:"🌺",bg:"linear-gradient(135deg,#2a1020,#1a0a18)",stars:"★★★★★",rating:"4.7/5",reads:"1.8K",rvc:36,desc:"Through Kambili's eyes, Purple Hibiscus explores faith, family violence, and freedom in post-colonial Nigeria.",reviews:[{n:"Ngozi A.",av:"NA",c:"#f472b6",s:"★★★★★",d:"Dec 20, 2025",t:"Adichie's debut is stunning. Unforgettable."}],link:"https://www.goodreads.com/book/show/4699.Purple_Hibiscus"},
+    {id:2,title:"Americanah",author:"Chimamanda N. Adichie",genre:"Contemporary Fiction",badge:"April 2026",bc:"up",cover:"https://covers.openlibrary.org/b/isbn/9780307271082-L.jpg",fb:"🌍",bg:"linear-gradient(135deg,#1a1a2a,#0a0a1a)",stars:"★★★★★",rating:"4.9/5",reads:"3.1K",rvc:62,desc:"A bold novel about race, identity, immigration, and love.",reviews:[{n:"Zainab M.",av:"ZM",c:"#f59e0b",s:"★★★★★",d:"Nov 28, 2025",t:"The most honest book about the African immigrant experience."}],link:"https://www.goodreads.com/book/show/15796700-americanah"},
+    {id:3,title:"Half of a Yellow Sun",author:"Chimamanda N. Adichie",genre:"Historical Fiction",badge:"May 2026",bc:"up",cover:"https://covers.openlibrary.org/b/isbn/9781400095209-L.jpg",fb:"☀️",bg:"linear-gradient(135deg,#2a1a0a,#1a0a05)",stars:"★★★★★",rating:"4.8/5",reads:"2.2K",rvc:44,desc:"Set during the 1960s Biafran War. Winner of the Orange Prize for Fiction.",reviews:[{n:"Chisom E.",av:"CE",c:"#f87171",s:"★★★★★",d:"Oct 10, 2025",t:"I cried three times. Stays with you forever."}],link:"https://www.goodreads.com/book/show/7507522-half-of-a-yellow-sun"},
+    {id:4,title:"The Alchemist",author:"Paulo Coelho",genre:"Philosophical Fiction",badge:"June 2026",bc:"up",cover:"https://covers.openlibrary.org/b/isbn/9780062315007-L.jpg",fb:"⚗️",bg:"linear-gradient(135deg,#1a1510,#100e08)",stars:"★★★★☆",rating:"4.6/5",reads:"4.5K",rvc:89,desc:"A timeless tale of following your Personal Legend. 65 million+ copies sold.",reviews:[{n:"Lucas P.",av:"LP",c:"#fbbf24",s:"★★★★★",d:"Aug 15, 2025",t:"Changed my life at 22 and again at 35."}],link:"https://www.goodreads.com/book/show/865.The_Alchemist"},
+    {id:5,title:"Long Walk to Freedom",author:"Nelson Mandela",genre:"Autobiography",badge:"July 2026",bc:"up",cover:"https://covers.openlibrary.org/b/isbn/9780316548182-L.jpg",fb:"✊",bg:"linear-gradient(135deg,#1a0a0a,#100505)",stars:"★★★★★",rating:"4.9/5",reads:"1.6K",rvc:31,desc:"Mandela's journey from rural childhood to South Africa's first democratic presidency.",reviews:[{n:"Thabo M.",av:"TM",c:"#f97316",s:"★★★★★",d:"Jun 18, 2025",t:"Every page radiates dignity and wisdom."}],link:"https://www.goodreads.com/book/show/318431.Long_Walk_to_Freedom"},
+    {id:6,title:"So Long a Letter",author:"Mariama Bâ",genre:"Epistolary Novel",badge:"August 2026",bc:"up",cover:"https://covers.openlibrary.org/b/isbn/9780435905484-L.jpg",fb:"✉️",bg:"linear-gradient(135deg,#0a1520,#060f1a)",stars:"★★★★☆",rating:"4.5/5",reads:"980",rvc:22,desc:"A landmark of African feminist literature. Winner of the Noma Award.",reviews:[{n:"Marianne F.",av:"MF",c:"#fb7185",s:"★★★★★",d:"May 12, 2025",t:"Small in size but enormous in emotional impact."}],link:"https://www.goodreads.com/book/show/149455.So_Long_a_Letter"}
+  ],
+  spot:[
+    {id:1,name:"Dr. Amina Suleiman",genre:"African Contemporary Poetry",bio:"Award-winning poet from Lagos, Nigeria. Her debut 'Voices from the Delta' won the 2023 African Poetry Prize.",eventDate:"April 10, 2026 · 7:00 PM WAT",amazon:"https://amazon.com",photo:"",initials:"AS",color:"#2dd4bf",featured:true},
+    {id:2,name:"Marcus O. Bright",genre:"Afrofuturism",bio:"Nigerian-American author shortlisted for the Nommo Award. Explores technology and African identity.",eventDate:"April 28, 2026 · 6:00 PM WAT",amazon:"https://amazon.com",photo:"",initials:"MB",color:"#d4a843",featured:false}
+  ],
+  events:[
+    {id:1,mo:"Mar",dy:"05",gn:"African Literature",tt:"Things Fall Apart — Author Discussion & Q&A",mt:"Virtual · 7:00 PM WAT",mail:"Things Fall Apart Discussion March 5"},
+    {id:2,mo:"Mar",dy:"18",gn:"Contemporary Fiction",tt:"Purple Hibiscus — Launch Reading Circle",mt:"Virtual · 6:00 PM WAT",mail:"Purple Hibiscus event March 18"},
+    {id:3,mo:"Apr",dy:"02",gn:"Community Night",tt:"Rise & Read — Open Mic Night",mt:"Virtual · 8:00 PM WAT",mail:"Rise and Read Open Mic Night"},
+    {id:4,mo:"Apr",dy:"20",gn:"Memoir",tt:"Long Walk to Freedom — Leadership Lessons",mt:"Virtual · 5:00 PM WAT",mail:"Long Walk to Freedom discussion"}
+  ],
+  blog:[
+    {id:1,img:"📚",bg:"linear-gradient(135deg,#1a2744,#0d1117)",cat:"Analysis",date:"February 10, 2026",title:"Why African Literature Must Lead the Global Narrative",excerpt:"As African voices gain global recognition, we explore how literature from the continent is reshaping world culture."},
+    {id:2,img:"✊",bg:"linear-gradient(135deg,#1a2a1a,#0d1a0d)",cat:"Community",date:"January 28, 2026",title:"Building Bridges Through Books: Our Story",excerpt:"How RiseEdge has connected readers from Lagos to London, creating friendships forged in the love of great stories."},
+    {id:3,img:"🌟",bg:"linear-gradient(135deg,#1a1020,#0d0515)",cat:"Picks",date:"January 15, 2026",title:"Top 10 Rising Authors You Should Know in 2026",excerpt:"Discover the breakout voices reshaping storytelling for a new generation of readers."}
+  ],
+  authors:[
+    {id:1,name:"Chimamanda Ngozi Adichie",nat:"🇳🇬 Nigeria",tag:"Contemporary Fiction",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Chimamanda_Ngozi_Adichie_%28cropped%29.jpg/480px-Chimamanda_Ngozi_Adichie_%28cropped%29.jpg",img2:"",fb:"👩🏾",fbBg:"linear-gradient(135deg,#2a1020,#1a0a18)",books:"Purple Hibiscus, Americanah, Half of a Yellow Sun",quote:"The single story creates stereotypes. What is true is that there are multiple stories."},
+    {id:2,name:"Chinua Achebe",nat:"🇳🇬 Nigeria",tag:"African Literature",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Chinua_Achebe_-_Buffalo_25Sept2008.jpg/480px-Chinua_Achebe_-_Buffalo_25Sept2008.jpg",img2:"",fb:"👨🏾",fbBg:"linear-gradient(135deg,#1a2a1a,#0d1a0d)",books:"Things Fall Apart, Arrow of God, No Longer at Ease",quote:"Until the lion learns to write, every story will glorify the hunter."},
+    {id:3,name:"Paulo Coelho",nat:"🇧🇷 Brazil",tag:"Philosophical Fiction",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Paulo_Coelho_2007.jpg/480px-Paulo_Coelho_2007.jpg",img2:"",fb:"👨🏻",fbBg:"linear-gradient(135deg,#1a1510,#100e08)",books:"The Alchemist, The Zahir, Brida",quote:"When you want something, all the universe conspires in helping you achieve it."},
+    {id:4,name:"Nelson Mandela",nat:"🇿🇦 South Africa",tag:"Memoir & Leadership",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Nelson_Mandela_1994.jpg/480px-Nelson_Mandela_1994.jpg",img2:"",fb:"✊🏿",fbBg:"linear-gradient(135deg,#1a0a0a,#100505)",books:"Long Walk to Freedom, Conversations with Myself",quote:"Education is the most powerful weapon which you can use to change the world."}
+  ],
+  awards:[
+    {id:1,title:"Things Fall Apart",author:"Chinua Achebe",award:"Man Booker Prize",trophy:"🏆",img:"https://covers.openlibrary.org/b/isbn/9780385474542-L.jpg",fb:"📖",fbBg:"linear-gradient(135deg,#1a2a1a,#0d1a0d)",badge:"Man Booker",desc:"The quintessential modern African novel."},
+    {id:2,title:"Americanah",author:"Chimamanda Ngozi Adichie",award:"National Book Critics Circle Award",trophy:"🥇",img:"https://covers.openlibrary.org/b/isbn/9780307271082-L.jpg",fb:"🌍",fbBg:"linear-gradient(135deg,#1a1a2a,#0a0a1a)",badge:"NBCC Award",desc:"Winner of the NBCC Award for Fiction 2013."},
+    {id:3,title:"Half of a Yellow Sun",author:"Chimamanda N. Adichie",award:"Orange Prize for Fiction",trophy:"🧡",img:"https://covers.openlibrary.org/b/isbn/9781400095209-L.jpg",fb:"☀️",fbBg:"linear-gradient(135deg,#2a1a0a,#1a0a05)",badge:"Orange Prize",desc:"Winner of the Orange Prize 2007."},
+    {id:4,title:"The Alchemist",author:"Paulo Coelho",award:"Guinness World Record",trophy:"🌍",img:"https://covers.openlibrary.org/b/isbn/9780062315007-L.jpg",fb:"⚗️",fbBg:"linear-gradient(135deg,#1a1510,#100e08)",badge:"World Record",desc:"Most translated book by any living author."},
+    {id:5,title:"Long Walk to Freedom",author:"Nelson Mandela",award:"Multiple Literary Awards",trophy:"✊",img:"https://covers.openlibrary.org/b/isbn/9780316548182-L.jpg",fb:"✊",fbBg:"linear-gradient(135deg,#1a0a0a,#100505)",badge:"ANC Award",desc:"One of the most important autobiographies ever written."},
+    {id:6,title:"So Long a Letter",author:"Mariama Bâ",award:"Noma Award for Publishing",trophy:"📜",img:"https://covers.openlibrary.org/b/isbn/9780435905484-L.jpg",fb:"✉️",fbBg:"linear-gradient(135deg,#0a1520,#060f1a)",badge:"Noma Award",desc:"Winner of the inaugural Noma Award 1980."}
+  ]
+};
+
+/* ── AUTH ── */
+function doLogin(){
+  const u=document.getElementById('lu').value.trim(),p=document.getElementById('lp').value;
+  if(u==='riseedge'&&p==='admin2024'){
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('app').style.display='block';
+    initAdmin();
+  } else {
+    document.getElementById('lerr').style.display='block';
+    setTimeout(()=>document.getElementById('lerr').style.display='none',3000);
+  }
+}
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('loginScreen').style.display!=='none')doLogin();});
+function doLogout(){document.getElementById('app').style.display='none';document.getElementById('loginScreen').style.display='flex';document.getElementById('lu').value='';document.getElementById('lp').value='';}
+
+/* ── PAGE NAV ── */
+function sp(name,el){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('act'));
+  document.querySelectorAll('.sl').forEach(s=>s.classList.remove('act'));
+  document.getElementById('pg-'+name).classList.add('act');
+  if(el)el.classList.add('act');
+  if(name==='books')renderBooks();
+  if(name==='spotlight')renderSpotlight();
+  if(name==='events')renderEvents();
+  if(name==='blog')renderBlog();
+  if(name==='authors')renderAuthors();
+  if(name==='awards')renderAwards();
+}
+
+/* ── INIT ── */
+function initAdmin(){
+  updateBadges();
+  renderBooks();
+}
+function updateBadges(){
+  const books=load(K.books,DEF.books),spot=load(K.spot,DEF.spot),events=load(K.events,DEF.events),blog=load(K.blog,DEF.blog);
+  document.getElementById('bdg-books').textContent=books.length;
+  document.getElementById('bdg-spot').textContent=spot.length;
+  document.getElementById('bdg-events').textContent=events.length;
+  document.getElementById('bdg-blog').textContent=blog.length;
+  document.getElementById('ov-books').textContent=books.length;
+  document.getElementById('ov-spot').textContent=spot.length;
+  document.getElementById('ov-events').textContent=events.length;
+  document.getElementById('ov-blog').textContent=blog.length;
+}
+
+/* ─────── RENDER LISTS ─────── */
+function renderBooks(){
+  const data=load(K.books,DEF.books);
+  const el=document.getElementById('book-list');
+  document.getElementById('bookCount2').textContent=`${data.length} books (max 20)`;
+  el.innerHTML='';
+  data.forEach(b=>{
+    const d=document.createElement('div');d.className='iitem';
+    d.innerHTML=`
+      <div class="iitem-thumb" style="background:${b.bg};"><img src="${b.cover}" alt="${b.title}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'"></div>
+      <div class="iitem-info">
+        <div class="iitem-title">${b.title}</div>
+        <div class="iitem-sub">By ${b.author} · ${b.genre}</div>
+        <div class="iitem-tag">${b.badge} · ${b.stars} · ${b.reads} reads</div>
+      </div>
+      <div class="iitem-acts">
+        <button class="btn btn-ghost" onclick="openModal('book',${b.id})">✏️ Edit</button>
+        <button class="btn btn-red" onclick="delItem('books',${b.id})">🗑</button>
+      </div>`;
+    el.appendChild(d);
+  });
+}
+
+function renderSpotlight(){
+  const data=load(K.spot,DEF.spot);
+  const el=document.getElementById('spot-list');
+  document.getElementById('spotCount').textContent=`${data.length} spotlight author(s)`;
+  el.innerHTML='';
+  data.forEach(a=>{
+    const d=document.createElement('div');d.className='iitem'+(a.featured?' featured':'');
+    const avEl=a.photo?`<img src="${a.photo}" alt="${a.name}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">`:`<span style="font-size:1.4rem;font-weight:900;color:${a.color}">${a.initials||'?'}</span>`;
+    d.innerHTML=`
+      <div class="iitem-thumb" style="background:${a.color||'#d4a843'}22;border:2px solid ${a.color||'#d4a843'}44;">${avEl}</div>
+      <div class="iitem-info">
+        ${a.featured?'<div class="feat-pill">⭐ FEATURED</div>':''}
+        <div class="iitem-title">${a.name}</div>
+        <div class="iitem-sub">${a.genre}</div>
+        <div class="iitem-tag">📅 ${a.eventDate}</div>
+      </div>
+      <div class="iitem-acts">
+        <button class="btn btn-ghost" onclick="openModal('spot',${a.id})">✏️ Edit</button>
+        ${!a.featured?`<button class="btn btn-teal" onclick="setFeatured(${a.id})">⭐ Feature</button>`:''}
+        <button class="btn btn-red" onclick="delItem('spot',${a.id})">🗑</button>
+      </div>`;
+    el.appendChild(d);
+  });
+}
+
+function renderEvents(){
+  const data=load(K.events,DEF.events);
+  const el=document.getElementById('event-list');
+  document.getElementById('evCount').textContent=`${data.length} event(s)`;
+  el.innerHTML='';
+  data.forEach(ev=>{
+    const d=document.createElement('div');d.className='iitem';
+    d.innerHTML=`
+      <div class="iitem-thumb" style="background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.3);flex-direction:column;">
+        <span style="font-size:.7rem;color:var(--gold2);font-weight:700;">${ev.mo}</span>
+        <span style="font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--white);line-height:1;">${ev.dy}</span>
+      </div>
+      <div class="iitem-info">
+        <div class="iitem-title">${ev.tt}</div>
+        <div class="iitem-sub">${ev.gn} · ${ev.mt}</div>
+      </div>
+      <div class="iitem-acts">
+        <button class="btn btn-ghost" onclick="openModal('event',${ev.id})">✏️ Edit</button>
+        <button class="btn btn-red" onclick="delItem('events',${ev.id})">🗑</button>
+      </div>`;
+    el.appendChild(d);
+  });
+}
+
+function renderBlog(){
+  const data=load(K.blog,DEF.blog);
+  const el=document.getElementById('blog-list');
+  document.getElementById('blogCount').textContent=`${data.length} post(s)`;
+  el.innerHTML='';
+  data.forEach(b=>{
+    const d=document.createElement('div');d.className='iitem';
+    d.innerHTML=`
+      <div class="iitem-thumb" style="background:${b.bg};font-size:1.5rem;">${b.img}</div>
+      <div class="iitem-info">
+        <div class="iitem-title">${b.title}</div>
+        <div class="iitem-sub">${b.cat} · ${b.date}</div>
+        <div class="iitem-tag" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:380px;">${b.excerpt}</div>
+      </div>
+      <div class="iitem-acts">
+        <button class="btn btn-ghost" onclick="openModal('post',${b.id})">✏️ Edit</button>
+        <button class="btn btn-red" onclick="delItem('blog',${b.id})">🗑</button>
+      </div>`;
+    el.appendChild(d);
+  });
+}
+
+function renderAuthors(){
+  const data=load(K.authors,DEF.authors);
+  const el=document.getElementById('author-list');el.innerHTML='';
+  data.forEach(a=>{
+    const d=document.createElement('div');d.className='iitem';
+    d.innerHTML=`
+      <div class="iitem-thumb"><img src="${a.img}" alt="${a.name}" style="width:100%;height:100%;object-fit:cover;object-position:top;" onerror="this.style.display='none'"></div>
+      <div class="iitem-info">
+        <div class="iitem-title">${a.name}</div>
+        <div class="iitem-sub">${a.nat} · ${a.tag}</div>
+        <div class="iitem-tag">${a.books}</div>
+      </div>
+      <div class="iitem-acts">
+        <button class="btn btn-ghost" onclick="openModal('author',${a.id})">✏️ Edit</button>
+        <button class="btn btn-red" onclick="delItem('authors',${a.id})">🗑</button>
+      </div>`;
+    el.appendChild(d);
+  });
+}
+
+function renderAwards(){
+  const data=load(K.awards,DEF.awards);
+  const el=document.getElementById('award-list');el.innerHTML='';
+  data.forEach(a=>{
+    const d=document.createElement('div');d.className='iitem';
+    d.innerHTML=`
+      <div class="iitem-thumb"><img src="${a.img}" alt="${a.title}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'"></div>
+      <div class="iitem-info">
+        <div class="iitem-title">${a.title}</div>
+        <div class="iitem-sub">${a.author} · ${a.award}</div>
+        <div class="iitem-tag">${a.badge}</div>
+      </div>
+      <div class="iitem-acts">
+        <button class="btn btn-ghost" onclick="openModal('award',${a.id})">✏️ Edit</button>
+        <button class="btn btn-red" onclick="delItem('awards',${a.id})">🗑</button>
+      </div>`;
+    el.appendChild(d);
+  });
+}
+
+/* ─────── SET FEATURED ─────── */
+function setFeatured(id){
+  const data=load(K.spot,DEF.spot);
+  data.forEach(a=>a.featured=a.id===id);
+  save(K.spot,data);renderSpotlight();updateBadges();
+  showToast('⭐ Featured author updated on website!','ok');
+}
+
+/* ─────── DELETE ─────── */
+function delItem(type,id){
+  if(!confirm('Remove this item?'))return;
+  const kmap={books:K.books,spot:K.spot,events:K.events,blog:K.blog,authors:K.authors,awards:K.awards};
+  const defmap={books:DEF.books,spot:DEF.spot,events:DEF.events,blog:DEF.blog,authors:DEF.authors,awards:DEF.awards};
+  const k=kmap[type];const data=load(k,defmap[type]).filter(x=>x.id!==id);
+  save(k,data);updateBadges();
+  if(type==='books')renderBooks();
+  if(type==='spot')renderSpotlight();
+  if(type==='events')renderEvents();
+  if(type==='blog')renderBlog();
+  if(type==='authors')renderAuthors();
+  if(type==='awards')renderAwards();
+  showToast('Item removed.','ok');
+}
+
+/* ─────── PHOTO HANDLING ─────── */
+let currentPhoto='';
+function handleFile(inp){
+  const f=inp.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{currentPhoto=e.target.result;showPhotoPreview(currentPhoto);document.getElementById('fm-photoUrl').value='';};
+  r.readAsDataURL(f);
+}
+function handleUrl(v){if(v){currentPhoto=v;showPhotoPreview(v);}else{currentPhoto='';clearPhotoPreview();}}
+function showPhotoPreview(src){
+  const pu=document.getElementById('fm-photoArea');
+  let img=pu.querySelector('img.prev');
+  if(!img){img=document.createElement('img');img.className='prev';pu.prepend(img);}
+  img.src=src;img.style.display='block';
+  const ph=pu.querySelector('.pu-ph');if(ph)ph.style.display='none';
+  pu.classList.add('has');
+}
+function clearPhotoPreview(){
+  const pu=document.getElementById('fm-photoArea');
+  const img=pu.querySelector('img.prev');if(img)img.style.display='none';
+  const ph=pu.querySelector('.pu-ph');if(ph)ph.style.display='block';
+  pu.classList.remove('has');currentPhoto='';
+}
+
+/* ─────── COLOR ─────── */
+let selColor='#d4a843';
+function pickColor(el){document.querySelectorAll('.cs').forEach(s=>s.classList.remove('act'));el.classList.add('act');selColor=el.dataset.c;}
+
+/* ─────── MODAL FORMS ─────── */
+let modalType='',editId='';
+const COLORS=['#d4a843','#2dd4bf','#f472b6','#60a5fa','#a78bfa','#34d399','#f97316','#e11d48'];
+
+function openModal(type,id){
+  modalType=type;editId=id;
+  currentPhoto='';selColor='#d4a843';
+  const overlay=document.getElementById('foverlay');
+  const body=document.getElementById('fm-body');
+  let data=null,def=null;
+
+  if(type==='book'){
+    document.getElementById('fm-title').textContent=id===''?'Add New Book':'Edit Book';
+    document.getElementById('fm-sub').textContent='Fill in book details. The cover image URL will show as the card photo.';
+    const books=load(K.books,DEF.books);
+    if(id!==''){data=books.find(b=>b.id===+id);}
+    const b=data||{};
+    body.innerHTML=`
+      <div class="frow"><div class="fg"><div class="fl">Title *</div><input type="text" class="fi" id="f-title" value="${b.title||''}" placeholder="e.g. Things Fall Apart"></div>
+      <div class="fg"><div class="fl">Author *</div><input type="text" class="fi" id="f-author" value="${b.author||''}" placeholder="e.g. Chinua Achebe"></div></div>
+      <div class="frow"><div class="fg"><div class="fl">Genre *</div><input type="text" class="fi" id="f-genre" value="${b.genre||''}" placeholder="e.g. African Classic"></div>
+      <div class="fg"><div class="fl">Badge Label</div><input type="text" class="fi" id="f-badge" value="${b.badge||'Upcoming'}" placeholder="e.g. March 2026"></div></div>
+      <div class="frow full"><div class="fg"><div class="fl">Cover Image URL *</div><input type="text" class="fi" id="f-cover" value="${b.cover||''}" placeholder="https://covers.openlibrary.org/..."><div class="fh">Paste a direct image URL. Try: https://covers.openlibrary.org/b/isbn/[ISBN]-L.jpg</div></div></div>
+      <div class="frow"><div class="fg"><div class="fl">Goodreads Link</div><input type="text" class="fi" id="f-link" value="${b.link||''}" placeholder="https://goodreads.com/book/..."></div>
+      <div class="fg"><div class="fl">Rating</div><input type="text" class="fi" id="f-rating" value="${b.rating||'4.5/5'}" placeholder="e.g. 4.5/5"></div></div>
+      <div class="frow tri"><div class="fg"><div class="fl">Read Count</div><input type="text" class="fi" id="f-reads" value="${b.reads||'0'}" placeholder="e.g. 1.2K"></div>
+      <div class="fg"><div class="fl">Review Count</div><input type="number" class="fi" id="f-rvc" value="${b.rvc||0}" placeholder="48"></div>
+      <div class="fg"><div class="fl">Stars Display</div><input type="text" class="fi" id="f-stars" value="${b.stars||'★★★★☆'}" placeholder="★★★★☆"></div></div>
+      <div class="frow full"><div class="fg"><div class="fl">Description *</div><textarea class="fi" id="f-desc" placeholder="2-4 sentence description of the book...">${b.desc||''}</textarea></div></div>
+      <div class="frow full"><div class="fg"><div class="fl">Badge Type</div>
+      <select class="fi" id="f-bc"><option value="" ${!b.bc?'selected':''}>Gold (Current/Default)</option><option value="up" ${b.bc==='up'?'selected':''}>Teal (Upcoming)</option></select></div></div>
+      <button class="btn-save" onclick="saveItem()">💾 Save Book to Website</button>`;
+  }
+
+  else if(type==='spot'){
+    document.getElementById('fm-title').textContent=id===''?'Add Spotlight Author':'Edit Spotlight Author';
+    document.getElementById('fm-sub').textContent='Paid spotlight author profile. Will appear in the Spotlight section of the website.';
+    const spots=load(K.spot,DEF.spot);
+    if(id!==''){data=spots.find(a=>a.id===+id);}
+    const a=data||{};
+    if(a.color)selColor=a.color;
+    if(a.photo)currentPhoto=a.photo;
+    body.innerHTML=`
+      <div class="fg" style="margin-bottom:14px;"><div class="fl">Author Photo</div>
+        <div class="pu has" id="fm-photoArea" onclick="document.getElementById('fm-pf').click()" style="${a.photo?'':''}">
+          ${a.photo?`<img class="prev" src="${a.photo}" alt="" style="display:block;">`:''}
+          <div class="pu-ph" ${a.photo?'style="display:none"':''}>📷<br><span style="font-size:.78rem;color:var(--muted);">Click to upload photo</span></div>
+        </div>
+        <input type="file" id="fm-pf" accept="image/*" style="display:none;" onchange="handleFile(this)">
+        <div class="fh" style="margin-top:8px;">Or paste a direct photo URL:</div>
+        <input type="text" class="fi" id="fm-photoUrl" value="${a.photo&&a.photo.startsWith('http')?a.photo:''}" placeholder="https://example.com/photo.jpg" style="margin-top:6px;" oninput="handleUrl(this.value)">
+      </div>
+      <div class="frow"><div class="fg"><div class="fl">Full Name *</div><input type="text" class="fi" id="f-name" value="${a.name||''}" placeholder="e.g. Dr. Amina Suleiman"></div>
+      <div class="fg"><div class="fl">Genre / Category *</div><input type="text" class="fi" id="f-genre" value="${a.genre||''}" placeholder="e.g. African Poetry"></div></div>
+      <div class="frow full"><div class="fg"><div class="fl">Short Bio *</div><textarea class="fi" id="f-bio" placeholder="2-4 sentence author bio...">${a.bio||''}</textarea></div></div>
+      <div class="frow"><div class="fg"><div class="fl">Event Date & Time *</div><input type="text" class="fi" id="f-date" value="${a.eventDate||''}" placeholder="e.g. April 10, 2026 · 7:00 PM WAT"></div>
+      <div class="fg"><div class="fl">Amazon Book URL</div><input type="text" class="fi" id="f-amazon" value="${a.amazon||''}" placeholder="https://amazon.com/dp/..."></div></div>
+      <div class="frow"><div class="fg"><div class="fl">Initials (fallback avatar)</div><input type="text" class="fi" id="f-initials" value="${a.initials||''}" placeholder="e.g. AS" maxlength="3"><div class="fh">Shown when no photo</div></div>
+      <div class="fg"><div class="fl">Avatar Color</div>
+        <div class="csw">${COLORS.map(c=>`<div class="cs${c===selColor?' act':''}" style="background:${c};" data-c="${c}" onclick="pickColor(this)"></div>`).join('')}</div>
+      </div></div>
+      <div class="tog-row"><div class="tog-info"><div class="tog-l">⭐ Set as Featured (Main Spotlight)</div><div class="tog-s">Appears as the large card on the website</div></div>
+      <div class="tog ${a.featured?'on':''}" id="f-featTog" onclick="this.classList.toggle('on')"></div></div>
+      <button class="btn-save" onclick="saveItem()">💾 Save Author to Website</button>`;
+  }
+
+  else if(type==='event'){
+    document.getElementById('fm-title').textContent=id===''?'Add Event':'Edit Event';
+    document.getElementById('fm-sub').textContent='Add an upcoming event to the events section.';
+    const events=load(K.events,DEF.events);
+    if(id!==''){data=events.find(e=>e.id===+id);}
+    const ev=data||{};
+    body.innerHTML=`
+      <div class="frow"><div class="fg"><div class="fl">Month (3 letters) *</div><input type="text" class="fi" id="f-mo" value="${ev.mo||''}" placeholder="e.g. Apr" maxlength="3"></div>
+      <div class="fg"><div class="fl">Day (2 digits) *</div><input type="text" class="fi" id="f-dy" value="${ev.dy||''}" placeholder="e.g. 05" maxlength="2"></div></div>
+      <div class="frow full"><div class="fg"><div class="fl">Event Title *</div><input type="text" class="fi" id="f-tt" value="${ev.tt||''}" placeholder="e.g. Things Fall Apart — Author Discussion"></div></div>
+      <div class="frow"><div class="fg"><div class="fl">Genre / Category</div><input type="text" class="fi" id="f-gn" value="${ev.gn||''}" placeholder="e.g. African Literature"></div>
+      <div class="fg"><div class="fl">Time & Location</div><input type="text" class="fi" id="f-mt" value="${ev.mt||''}" placeholder="e.g. Virtual · 7:00 PM WAT"></div></div>
+      <button class="btn-save" onclick="saveItem()">💾 Save Event to Website</button>`;
+  }
+
+  else if(type==='post'){
+    document.getElementById('fm-title').textContent=id===''?'Add Blog Post':'Edit Blog Post';
+    document.getElementById('fm-sub').textContent='Add or edit a blog post shown in the articles section.';
+    const blog=load(K.blog,DEF.blog);
+    if(id!==''){data=blog.find(b=>b.id===+id);}
+    const p=data||{};
+    body.innerHTML=`
+      <div class="frow"><div class="fg"><div class="fl">Title *</div><input type="text" class="fi" id="f-title" value="${p.title||''}" placeholder="Blog post title"></div>
+      <div class="fg"><div class="fl">Category *</div><input type="text" class="fi" id="f-cat" value="${p.cat||''}" placeholder="e.g. Analysis"></div></div>
+      <div class="frow full"><div class="fg"><div class="fl">Excerpt *</div><textarea class="fi" id="f-excerpt" placeholder="Short description (1-2 sentences)">${p.excerpt||''}</textarea></div></div>
+      <div class="frow"><div class="fg"><div class="fl">Date</div><input type="text" class="fi" id="f-date" value="${p.date||''}" placeholder="e.g. February 10, 2026"></div>
+      <div class="fg"><div class="fl">Icon Emoji</div><input type="text" class="fi" id="f-img" value="${p.img||'📚'}" placeholder="e.g. 📚" maxlength="4"></div></div>
+      <button class="btn-save" onclick="saveItem()">💾 Save Post to Website</button>`;
+  }
+
+  else if(type==='author'){
+    document.getElementById('fm-title').textContent=id===''?'Add Author':'Edit Author';
+    document.getElementById('fm-sub').textContent='Author shown in the Featured Authors section.';
+    const authors=load(K.authors,DEF.authors);
+    if(id!==''){data=authors.find(a=>a.id===+id);}
+    const a=data||{};
+    body.innerHTML=`
+      <div class="frow full"><div class="fg"><div class="fl">Author Photo URL *</div><input type="text" class="fi" id="f-img" value="${a.img||''}" placeholder="https://...jpg"><div class="fh">Direct URL to a photo of the author (portrait, facing forward)</div></div></div>
+      <div class="frow"><div class="fg"><div class="fl">Full Name *</div><input type="text" class="fi" id="f-name" value="${a.name||''}" placeholder="e.g. Chimamanda Ngozi Adichie"></div>
+      <div class="fg"><div class="fl">Nationality (flag + country)</div><input type="text" class="fi" id="f-nat" value="${a.nat||''}" placeholder="e.g. 🇳🇬 Nigeria"></div></div>
+      <div class="frow"><div class="fg"><div class="fl">Genre Tag</div><input type="text" class="fi" id="f-tag" value="${a.tag||''}" placeholder="e.g. Contemporary Fiction"></div>
+      <div class="fg"><div class="fl">Fallback Emoji</div><input type="text" class="fi" id="f-fb" value="${a.fb||'👤'}" placeholder="👤" maxlength="4"></div></div>
+      <div class="frow full"><div class="fg"><div class="fl">Books (comma separated)</div><input type="text" class="fi" id="f-books" value="${a.books||''}" placeholder="Book One, Book Two, Book Three"></div></div>
+      <div class="frow full"><div class="fg"><div class="fl">Famous Quote *</div><textarea class="fi" id="f-quote" placeholder="A quote by this author...">${a.quote||''}</textarea></div></div>
+      <button class="btn-save" onclick="saveItem()">💾 Save Author to Website</button>`;
+  }
+
+  else if(type==='award'){
+    document.getElementById('fm-title').textContent=id===''?'Add Award':'Edit Award';
+    document.getElementById('fm-sub').textContent='Award-winning book shown in the Awards section.';
+    const awards=load(K.awards,DEF.awards);
+    if(id!==''){data=awards.find(a=>a.id===+id);}
+    const a=data||{};
+    body.innerHTML=`
+      <div class="frow"><div class="fg"><div class="fl">Book Title *</div><input type="text" class="fi" id="f-title" value="${a.title||''}" placeholder="e.g. Things Fall Apart"></div>
+      <div class="fg"><div class="fl">Author *</div><input type="text" class="fi" id="f-author" value="${a.author||''}" placeholder="e.g. Chinua Achebe"></div></div>
+      <div class="frow full"><div class="fg"><div class="fl">Cover Image URL *</div><input type="text" class="fi" id="f-img" value="${a.img||''}" placeholder="https://covers.openlibrary.org/..."></div></div>
+      <div class="frow"><div class="fg"><div class="fl">Award Name *</div><input type="text" class="fi" id="f-award" value="${a.award||''}" placeholder="e.g. Orange Prize for Fiction"></div>
+      <div class="fg"><div class="fl">Badge Short Name</div><input type="text" class="fi" id="f-badge" value="${a.badge||''}" placeholder="e.g. Orange Prize"></div></div>
+      <div class="frow"><div class="fg"><div class="fl">Trophy Emoji</div><input type="text" class="fi" id="f-trophy" value="${a.trophy||'🏆'}" placeholder="🏆" maxlength="4"></div>
+      <div class="fg"><div class="fl">Fallback Emoji</div><input type="text" class="fi" id="f-fb" value="${a.fb||'📖'}" placeholder="📖" maxlength="4"></div></div>
+      <div class="frow full"><div class="fg"><div class="fl">Description *</div><textarea class="fi" id="f-desc" placeholder="Brief description of why this book won...">${a.desc||''}</textarea></div></div>
+      <button class="btn-save" onclick="saveItem()">💾 Save Award to Website</button>`;
+  }
+
+  overlay.classList.add('open');
+}
+
+function closeModal(e){
+  if(!e||e.target===document.getElementById('foverlay')||e.target.classList.contains('fm-close')){
+    document.getElementById('foverlay').classList.remove('open');
+  }
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+/* ─────── SAVE ITEM ─────── */
+function saveItem(){
+  const v=id=>document.getElementById(id)?document.getElementById(id).value.trim():'';
+  const n=id=>document.getElementById(id)?+document.getElementById(id).value:0;
+
+  if(modalType==='book'){
+    const title=v('f-title'),author=v('f-author'),genre=v('f-genre'),desc=v('f-desc'),cover=v('f-cover');
+    if(!title||!author||!genre||!desc||!cover){showToast('Please fill in all required (*) fields.','err');return;}
+    const data=load(K.books,DEF.books);
+    if(data.length>=20&&editId===''){showToast('Maximum 20 books reached. Delete one first.','err');return;}
+    const item={
+      id:editId!==''?+editId:Date.now(),
+      title,author,genre,badge:v('f-badge')||'Upcoming',
+      bc:v('f-bc'),cover,
+      fb:['📖','📚','🌺','☀️','⚗️','✊','✉️','🌍'][Math.floor(Math.random()*8)],
+      bg:"linear-gradient(135deg,#1a1a2a,#0d0d1a)",
+      stars:v('f-stars')||'★★★★☆',rating:v('f-rating')||'4.5/5',
+      reads:v('f-reads')||'0',rvc:n('f-rvc'),
+      desc,link:v('f-link'),
+      reviews:[]
+    };
+    if(editId!==''){const idx=data.findIndex(b=>b.id===+editId);idx>=0?data[idx]=item:data.push(item);}
+    else data.push(item);
+    save(K.books,data);updateBadges();renderBooks();
+    showToast(`✅ "${title}" saved to website!`,'ok');
+    document.getElementById('foverlay').classList.remove('open');
+    sp('books',null);
+  }
+
+  else if(modalType==='spot'){
+    const name=v('f-name'),genre=v('f-genre'),bio=v('f-bio'),date=v('f-date');
+    if(!name||!genre||!bio||!date){showToast('Please fill in all required (*) fields.','err');return;}
+    const data=load(K.spot,DEF.spot);
+    const isFeat=document.getElementById('f-featTog').classList.contains('on');
+    const item={
+      id:editId!==''?+editId:Date.now(),
+      name,genre,bio,eventDate:date,
+      amazon:v('f-amazon')||'#',
+      photo:currentPhoto||v('fm-photoUrl')||'',
+      initials:v('f-initials')||name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),
+      color:selColor,featured:isFeat
+    };
+    if(isFeat)data.forEach(a=>a.featured=false);
+    if(editId!==''){const idx=data.findIndex(a=>a.id===+editId);idx>=0?data[idx]=item:data.push(item);}
+    else data.push(item);
+    save(K.spot,data);updateBadges();renderSpotlight();
+    showToast(`✅ "${name}" is now live on the website!`,'ok');
+    document.getElementById('foverlay').classList.remove('open');
+  }
+
+  else if(modalType==='event'){
+    const mo=v('f-mo'),dy=v('f-dy'),tt=v('f-tt');
+    if(!mo||!dy||!tt){showToast('Please fill in all required (*) fields.','err');return;}
+    const data=load(K.events,DEF.events);
+    const item={id:editId!==''?+editId:Date.now(),mo,dy,tt,gn:v('f-gn')||'Event',mt:v('f-mt')||'Virtual',mail:tt};
+    if(editId!==''){const idx=data.findIndex(e=>e.id===+editId);idx>=0?data[idx]=item:data.push(item);}
+    else data.push(item);
+    save(K.events,data);updateBadges();renderEvents();
+    showToast(`✅ Event saved to website!`,'ok');
+    document.getElementById('foverlay').classList.remove('open');
+  }
+
+  else if(modalType==='post'){
+    const title=v('f-title'),cat=v('f-cat'),excerpt=v('f-excerpt');
+    if(!title||!cat||!excerpt){showToast('Please fill in all required (*) fields.','err');return;}
+    const data=load(K.blog,DEF.blog);
+    const item={id:editId!==''?+editId:Date.now(),title,cat,excerpt,date:v('f-date')||new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}),img:v('f-img')||'📚',bg:"linear-gradient(135deg,#1a2744,#0d1117)"};
+    if(editId!==''){const idx=data.findIndex(b=>b.id===+editId);idx>=0?data[idx]=item:data.push(item);}
+    else data.push(item);
+    save(K.blog,data);updateBadges();renderBlog();
+    showToast(`✅ Blog post saved!`,'ok');
+    document.getElementById('foverlay').classList.remove('open');
+  }
+
+  else if(modalType==='author'){
+    const name=v('f-name'),img=v('f-img'),quote=v('f-quote');
+    if(!name||!img||!quote){showToast('Please fill in all required (*) fields.','err');return;}
+    const data=load(K.authors,DEF.authors);
+    const booksRaw=v('f-books');
+    const item={id:editId!==''?+editId:Date.now(),name,nat:v('f-nat')||'',tag:v('f-tag')||'Author',img,img2:'',fb:v('f-fb')||'👤',fbBg:"linear-gradient(135deg,#1a2a1a,#0d1a0d)",books:booksRaw,quote};
+    if(editId!==''){const idx=data.findIndex(a=>a.id===+editId);idx>=0?data[idx]=item:data.push(item);}
+    else data.push(item);
+    save(K.authors,data);renderAuthors();
+    showToast(`✅ Author saved!`,'ok');
+    document.getElementById('foverlay').classList.remove('open');
+  }
+
+  else if(modalType==='award'){
+    const title=v('f-title'),author=v('f-author'),award=v('f-award'),desc=v('f-desc'),img=v('f-img');
+    if(!title||!author||!award||!desc||!img){showToast('Please fill in all required (*) fields.','err');return;}
+    const data=load(K.awards,DEF.awards);
+    const item={id:editId!==''?+editId:Date.now(),title,author,award,badge:v('f-badge')||award,trophy:v('f-trophy')||'🏆',img,fb:v('f-fb')||'📖',fbBg:"linear-gradient(135deg,#1a1a2a,#0d0d1a)",desc};
+    if(editId!==''){const idx=data.findIndex(a=>a.id===+editId);idx>=0?data[idx]=item:data.push(item);}
+    else data.push(item);
+    save(K.awards,data);renderAwards();
+    showToast(`✅ Award saved!`,'ok');
+    document.getElementById('foverlay').classList.remove('open');
+  }
+}
+
+/* ─────── RESET ─────── */
+function resetSection(key,type){
+  if(!confirm(`Reset ${type} to default data? This cannot be undone.`))return;
+  localStorage.removeItem(key);updateBadges();
+  if(type==='books')renderBooks();
+  if(type==='spotlight')renderSpotlight();
+  if(type==='events')renderEvents();
+  if(type==='blog')renderBlog();
+  if(type==='authors')renderAuthors();
+  if(type==='awards')renderAwards();
+  showToast(`${type} reset to defaults.`,'ok');
+}
+function resetAll(){
+  if(!confirm('Reset ALL sections to defaults? This cannot be undone.'))return;
+  Object.values(K).forEach(k=>localStorage.removeItem(k));
+  updateBadges();renderBooks();
+  showToast('All data reset to defaults.','ok');
+}
+
+/* ─────── TOAST ─────── */
+function showToast(msg,type='ok'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast '+type;
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+/* ─────── EMAIL TEMPLATE COPY ─────── */
+function copyTpl(){
+  const txt=`Subject: RiseEdge Book Club Author Spotlight Invitation\n\nHello [Author Name],\n\nWe'd love to feature you in our Author Spotlight!\n\nWhat you get:\n- Featured profile on rise-edge-book-club.vercel.app\n- Live Zoom with 5,000+ readers\n- Amazon link promoted to all members\n- Social media promotion\n\nReservation Fee: [Your Price]\nPayment: rise.edgebookclub01@gmail.com\n\nLet's Rise Together,\nRiseEdge Book Club`;
+  navigator.clipboard.writeText(txt).then(()=>showToast('📋 Template copied!','ok')).catch(()=>showToast('Could not copy — try manually.','err'));
+}
+</script>
+</body>
+</html>
